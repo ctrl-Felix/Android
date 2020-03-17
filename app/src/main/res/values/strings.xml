@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="input_placeholder">Write a message</string>
+    <string name="app_name">BoomBoxBeilstein</string>
+    <string name="compose_email">Compose Email</string>
+    <string name="email_hint">Schick uns deine Nachricht</string>
+</resources>
