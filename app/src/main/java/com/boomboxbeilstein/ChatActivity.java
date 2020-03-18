@@ -1,5 +1,6 @@
 package com.boomboxbeilstein;
 
+import android.content.DialogInterface;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
@@ -9,21 +10,25 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.ListView;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.scaledrone.lib.HistoryRoomListener;
 import com.scaledrone.lib.Listener;
-import com.scaledrone.lib.Member;
 import com.scaledrone.lib.Room;
 import com.scaledrone.lib.RoomListener;
 import com.scaledrone.lib.Scaledrone;
-import com.scaledrone.lib.SubscribeOptions;
 
+import java.io.IOException;
 import java.util.Random;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 public class ChatActivity extends AppCompatActivity implements
         RoomListener {
@@ -34,11 +39,13 @@ public class ChatActivity extends AppCompatActivity implements
         private Scaledrone scaledrone;
         private MessageAdapter messageAdapter;
         private ListView messagesView;
+        public String res;
 
 
         @Override
         protected void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
+
             setContentView(R.layout.activity_chat);
 
             messageAdapter = new MessageAdapter(this);
@@ -46,9 +53,13 @@ public class ChatActivity extends AppCompatActivity implements
             messagesView.setAdapter(messageAdapter);
 
             Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar_main);
-            setSupportActionBar(toolbar);
+//            setSupportActionBar(toolbar);
             // User Check for Ban
-
+           // if (checkBan() == 0){
+              //  ;
+            //}else{
+              //  chatDenied();
+            //}
 
             // This is where we write the message
             editText = (EditText) findViewById(R.id.editText);
@@ -141,7 +152,7 @@ public class ChatActivity extends AppCompatActivity implements
 
 
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.manu_contact, menu);
+        getMenuInflater().inflate(R.menu.menu_contact, menu);
         return true;
     }
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -161,7 +172,55 @@ public class ChatActivity extends AppCompatActivity implements
 
         }
     }
+    public void createUser(String uuid,String name){
+        String api = "http://37.120.178.44:8000/chat/check?"+uuid+"&name="+name;
+        OkHttpClient client = new OkHttpClient();
 
+        Request request = new Request.Builder()
+                .url(api)
+                .build();
+
+        client.newCall(request);
+
+    }
+
+    public void chatDenied(){
+        AlertDialog.Builder banmsg = new AlertDialog.Builder(this);
+        banmsg.setTitle("Du wurdest gebannt");
+        banmsg.setMessage("Du wurdest vom BoomBox Team aus dem Chat gebannt. Du kannst aber weiterhin Mails ins Studio schicken.");
+        banmsg.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                finish();
+                dialog.cancel();
+            }
+        });
+        AlertDialog bandialog = banmsg.create();
+        bandialog.show();
+    }
+
+    private int checkBan() {
+        String api = "http://37.120.178.44:8000/chat/check?";
+        OkHttpClient client = new OkHttpClient();
+
+        Request request = new Request.Builder()
+                .url(api)
+                .build();
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(final Call call, IOException e) {
+                res = "2";
+            }
+            @Override
+            public void onResponse(Call call, final Response response) throws IOException {
+                res = response.body().string();
+            }
+        });
+
+        System.out.println("Erkennen "+res);
+        return 0;
+
+    }
 
 }
 class MemberData {

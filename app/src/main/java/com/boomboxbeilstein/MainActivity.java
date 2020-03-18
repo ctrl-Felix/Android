@@ -23,6 +23,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -50,6 +51,10 @@ import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory;
 import com.google.android.exoplayer2.util.Util;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -84,8 +89,13 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
 
     private String chatname = "";
 
+    // API song and artist
+    private String artist;
+    private String song;
 
-    private Button buttonPlay;
+
+
+    private ImageButton buttonPlay;
     TextView statusText;
     ImageView cover;
     ImageView background;
@@ -108,10 +118,12 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
          wm = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
          wfl = wm.createWifiLock(WifiManager.WIFI_MODE_FULL_HIGH_PERF, "BoomBoxBeilstein:sync_all_wifi");
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar_main);
-        setSupportActionBar(toolbar);
+//        buttonPlay.setBackgroundResource(R.drawable.btn_play);
 
-        buttonPlay = (Button) findViewById(R.id.buttonPlay);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar_main);
+//        setSupportActionBar(toolbar);
+
+        buttonPlay = (ImageButton) findViewById(R.id.buttonPlay);
         buttonPlay.setOnClickListener(this);
 
         statusText = (TextView) findViewById(R.id.statusText);
@@ -160,7 +172,7 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
         OkHttpClient client = new OkHttpClient();
 
         Request request = new Request.Builder()
-                .url(url)
+                .url("http://37.120.178.44:8000/live/song")
                 .build();
 
         client.newCall(request).enqueue(new Callback() {
@@ -175,11 +187,19 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
             public void onResponse(Call call, Response response) throws IOException {
 
                 final String myResponse = response.body().string();
+                try {
+                    JSONObject Jobject = new JSONObject(myResponse);
+                    song = Jobject.getString("song");
+                    artist = Jobject.getString("artist");
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
 
                 MainActivity.this.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        statusText.setText("Es läuft:" +  System.getProperty ("line.separator") + myResponse);
+                        statusText.setText(artist +  System.getProperty ("line.separator") + song);
                     }
                 });
 
@@ -191,7 +211,7 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
 
     void picture(){
         ImageLoader imageLoader = ImageLoader.getInstance(); // Get singleton instance
-        imageLoader.displayImage("https://bitrad.io/img/stations/3/147535/full.png", cover);
+        imageLoader.displayImage("http://37.120.178.44/api/cover.jpeg", cover);
 
 
     }
@@ -293,16 +313,7 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
                             System.out.println("Creating new device id");
                             mydatabase.execSQL("INSERT INTO chatuser VALUES('"+chatname+"','"+uniqueID+"');");
                             System.out.println("Identifier " + uniqueID);
-                            createUser(uniqueID,chatname);
-
-
-                            if(checkBan(uniqueID,chatname) == 0){
-                                openChat();
-                            } else {
-                                chatDenied();
-
-                            }
-
+                            openChat();
 
                         }
                     });
@@ -321,13 +332,7 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
                     String user = resultSet.getString(0);
                     String identifier = resultSet.getString(1);
                     System.out.println("Identifier " + identifier + " username " + user);
-                    if(checkBan(identifier,user) == 0){
-                        openChat();
-                    } else {
-                        chatDenied();
-
-                    }
-
+                    openChat();
                 }
 
                 return true;
@@ -340,57 +345,7 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
         }
     }
 
-    public void createUser(String uuid,String name){
-        String api = "http://37.120.178.44:8000/chat/check?"+uuid+"&name="+name;
-        OkHttpClient client = new OkHttpClient();
 
-        Request request = new Request.Builder()
-                .url(api)
-                .build();
-
-        client.newCall(request);
-
-    }
-
-    public void chatDenied(){
-        AlertDialog.Builder banmsg = new AlertDialog.Builder(this);
-        banmsg.setTitle("Du wurdest gebannt");
-        banmsg.setMessage("Du wurdest vom BoomBox Team aus dem Chat gebannt. Du kannst aber weiterhin Mails ins Studio schicken.");
-        banmsg.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.cancel();
-            }
-        });
-        AlertDialog bandialog = banmsg.create();
-        bandialog.show();
-    }
-
-    private int checkBan(String uuid,String name) {
-        String api = "http://37.120.178.44:8000/chat/check?" + uuid + "&name=" + name;
-        OkHttpClient client = new OkHttpClient();
-
-            Request request = new Request.Builder()
-                    .url(api)
-                    .build();
-        client.newCall(request).enqueue(new Callback() {
-            @Override
-            public void onFailure(final Call call, IOException e) {
-                res = "2";
-            }
-            @Override
-            public void onResponse(Call call, final Response response) throws IOException {
-                res = response.body().string();
-            }
-            });
-
-
-
-
-            System.out.println("Erkennen "+res);
-            return 0;
-
-    }
 
 
     public void openContact() {
@@ -404,19 +359,6 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
     }
 
 
-
-    public void onResume(View v){
-        super.onResume();
-        if (player != null){
-            switch(v.getId()) {
-                case R.id.buttonPlay:
-                    if (((Button) v).getText().equals("Start")) {
-                        ((Button) v).setText("Stop");
-                    }
-            }
-
-        }
-    }
     public void call(){
         String phoneNumber = "015223450164";
         Intent callIntent = new Intent(Intent.ACTION_CALL);
@@ -458,6 +400,20 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
     public void onClick(View v) {
         switch(v.getId()) {
             case R.id.buttonPlay:
+                if(player != null){
+                    stopPlaying();
+                    ((ImageButton) v).setBackgroundResource(R.drawable.btn_play);
+
+
+                }else{
+                    startPlaying();
+                    requestStatus();
+                    ((ImageButton) v).setBackgroundResource(R.drawable.btn_pause);
+
+
+                }
+
+                /*
                 if(((Button)v).getText().equals("Start")) {
                     ((Button) v).setText("Stop");
                     startPlaying();
@@ -467,7 +423,7 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
                     stopPlaying();
                     ((Button)v).setText("Start");
                 }
-
+                */
                 break;
 
 

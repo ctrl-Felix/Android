@@ -10,7 +10,7 @@ android {
 
     }
 
-    compileSdkVersion 29
+    compileSdkVersion 28
     buildToolsVersion "29.0.2"
     defaultConfig {
         applicationId "com.boomboxbeilstein"
@@ -53,6 +53,9 @@ dependencies {
     implementation 'com.pushbots:pushbots-lib:3.2.8@aar'
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     implementation 'com.google.firebase:firebase-messaging:17.0.0'
+
+    //material.io
+    implementation 'com.google.android.material:material:1.0.0'
 
     //chat
     implementation 'com.scaledrone:scaledrone-java:0.6.0';

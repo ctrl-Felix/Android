@@ -29,8 +29,8 @@ public class ContactActivity extends AppCompatActivity implements OnClickListene
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_contact);
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar_main);
-        setSupportActionBar(toolbar);
+        //Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar_main);
+        //setSupportActionBar(toolbar);
 
         buttonContact = (Button) findViewById(R.id.contact);
         buttonContact.setOnClickListener(ContactActivity.this);
@@ -101,7 +101,7 @@ public class ContactActivity extends AppCompatActivity implements OnClickListene
 
 
         public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.manu_contact, menu);
+        getMenuInflater().inflate(R.menu.menu_contact, menu);
         return true;
     }
 
