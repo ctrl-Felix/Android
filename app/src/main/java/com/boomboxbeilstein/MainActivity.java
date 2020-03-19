@@ -21,6 +21,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -37,6 +38,10 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import android.app.Application;
+
+import com.google.android.material.bottomnavigation.BottomNavigationItemView;
+import com.google.android.material.bottomnavigation.BottomNavigationMenuView;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.pushbots.push.Pushbots;
 
 import com.google.android.exoplayer2.C;
@@ -89,6 +94,8 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
 
     private String chatname = "";
 
+    private BottomNavigationView bottomNavigationView;
+
     // API song and artist
     private String artist;
     private String song;
@@ -120,8 +127,31 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
 
 //        buttonPlay.setBackgroundResource(R.drawable.btn_play);
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar_main);
-//        setSupportActionBar(toolbar);
+        bottomNavigationView = findViewById(R.id.bottom_navigation);
+        bottomNavigationView.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                switch (item.getItemId()) {
+                    case R.id.Call:
+                        callaction();
+
+                        return true;
+                    case R.id.action_settings:
+                        openContact();
+                        return true;
+
+                    case R.id.chat:
+                        chataction();
+                        return true;
+
+
+                }
+                return false;
+            }
+
+        });
+
+
 
         buttonPlay = (ImageButton) findViewById(R.id.buttonPlay);
         buttonPlay.setOnClickListener(this);
@@ -165,6 +195,30 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
 
     }
 
+    public void callaction(){
+        String phoneNumber = "015223450164";
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setCancelable(true);
+        builder.setTitle("Möchtest du uns anrufen?");
+        builder.setMessage("Wenn du jetzt auf Ja drückst rufst du direkt bei unseren Moderatoren im Studio an. Der Anruf kostet entsprechend deinem Mobilfunk tarif.");
+        builder.setPositiveButton("Ja",
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        call();
+                    }
+                });
+        builder.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+            }
+        });
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
+    }
+
+
 
 
     void runx() throws IOException {
@@ -206,6 +260,53 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
             }
         });
     }
+
+    public void chataction(){
+        //check for username - if not - ask for new one
+        final SQLiteDatabase mydatabase = openOrCreateDatabase("chatuser",MODE_PRIVATE,null);
+        mydatabase.execSQL("CREATE TABLE IF NOT EXISTS chatuser(user VARCHAR,identifier VARCHAR);");
+        Cursor resultSet = mydatabase.rawQuery("Select * from chatuser",null);
+        if (resultSet.getCount() == 0){
+            AlertDialog.Builder builder1 = new AlertDialog.Builder(this);
+            builder1.setCancelable(true);
+            builder1.setTitle("Dein Chat-Name");
+            builder1.setMessage("Jetzt brauchst du noch einen Benutzernamen, wähle ihn weise, danach kannst du ihn nicht mehr ändern.");
+            final EditText input = new EditText(this);
+            // Specify the type of input expected; this, for example, sets the input as a password, and will mask the text
+            input.setInputType(InputType.TYPE_CLASS_TEXT);
+            builder1.setView(input);
+            builder1.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    String chatname = input.getText().toString();
+                    String uniqueID = UUID.randomUUID().toString();
+                    System.out.println("Creating new device id");
+                    mydatabase.execSQL("INSERT INTO chatuser VALUES('"+chatname+"','"+uniqueID+"');");
+                    System.out.println("Identifier " + uniqueID);
+                    openChat();
+
+                }
+            });
+            builder1.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.cancel();
+                }
+            });
+            AlertDialog dialog1 = builder1.create();
+            dialog1.show();
+
+        } else {
+            System.out.println(resultSet.getCount());
+            resultSet.moveToFirst();
+            String user = resultSet.getString(0);
+            String identifier = resultSet.getString(1);
+            System.out.println("Identifier " + identifier + " username " + user);
+            openChat();
+        }
+
+    }
+
 
 
 
@@ -255,9 +356,95 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
         }
     }
 
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu, menu);
+    public boolean onCreateOptionsMenu(Menu mainmenu) {
+        //BottomNavigationView.inflate(this,R.menu.menu,);
+
         return true;
+    }
+
+    public boolean setOnNavigationItemSelectedListener(BottomNavigationView item){
+        switch (item.getSelectedItemId()) {
+
+            case R.id.Call:
+                String phoneNumber = "015223450164";
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setCancelable(true);
+                builder.setTitle("Möchtest du uns anrufen?");
+                builder.setMessage("Wenn du jetzt auf Ja drückst rufst du direkt bei unseren Moderatoren im Studio an. Der Anruf kostet entsprechend deinem Mobilfunk tarif.");
+                builder.setPositiveButton("Ja",
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                call();
+                            }
+                        });
+                builder.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                    }
+                });
+
+                AlertDialog dialog = builder.create();
+                dialog.show();
+
+                return true;
+
+            case R.id.action_settings:
+                openContact();
+                return true;
+
+            case R.id.chat:
+                //check for username - if not - ask for new one
+                final SQLiteDatabase mydatabase = openOrCreateDatabase("chatuser",MODE_PRIVATE,null);
+                mydatabase.execSQL("CREATE TABLE IF NOT EXISTS chatuser(user VARCHAR,identifier VARCHAR);");
+                Cursor resultSet = mydatabase.rawQuery("Select * from chatuser",null);
+                if (resultSet.getCount() == 0){
+                    AlertDialog.Builder builder1 = new AlertDialog.Builder(this);
+                    builder1.setCancelable(true);
+                    builder1.setTitle("Dein Chat-Name");
+                    builder1.setMessage("Jetzt brauchst du noch einen Benutzernamen, wähle ihn weise, danach kannst du ihn nicht mehr ändern.");
+                    final EditText input = new EditText(this);
+                    // Specify the type of input expected; this, for example, sets the input as a password, and will mask the text
+                    input.setInputType(InputType.TYPE_CLASS_TEXT);
+                    builder1.setView(input);
+                    builder1.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            String chatname = input.getText().toString();
+                            String uniqueID = UUID.randomUUID().toString();
+                            System.out.println("Creating new device id");
+                            mydatabase.execSQL("INSERT INTO chatuser VALUES('"+chatname+"','"+uniqueID+"');");
+                            System.out.println("Identifier " + uniqueID);
+                            openChat();
+
+                        }
+                    });
+                    builder1.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.cancel();
+                        }
+                    });
+                    AlertDialog dialog1 = builder1.create();
+                    dialog1.show();
+
+                } else {
+                    System.out.println(resultSet.getCount());
+                    resultSet.moveToFirst();
+                    String user = resultSet.getString(0);
+                    String identifier = resultSet.getString(1);
+                    System.out.println("Identifier " + identifier + " username " + user);
+                    openChat();
+                }
+
+                return true;
+
+            default:
+                // Wenn wir hier ankommen, wurde eine unbekannt Aktion erfasst.
+                // Daher erfolgt der Aufruf der Super-Klasse, die sich darum kümmert.
+                return false;
+
+        }
     }
 
 
@@ -402,13 +589,13 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
             case R.id.buttonPlay:
                 if(player != null){
                     stopPlaying();
-                    ((ImageButton) v).setBackgroundResource(R.drawable.btn_play);
+                    ((ImageButton) v).setImageResource(R.drawable.btn_play);
 
 
                 }else{
                     startPlaying();
                     requestStatus();
-                    ((ImageButton) v).setBackgroundResource(R.drawable.btn_pause);
+                    ((ImageButton) v).setImageResource(R.drawable.btn_pause);
 
 
                 }
