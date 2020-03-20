@@ -1,5 +1,6 @@
 package com.boomboxbeilstein;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
@@ -14,6 +15,7 @@ import android.widget.EditText;
 import android.widget.Spinner;
 import android.view.View.OnClickListener;
 
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
@@ -24,6 +26,7 @@ public class ContactActivity extends AppCompatActivity implements OnClickListene
 
     private EditText textinput;
     private EditText name;
+    private BottomNavigationView bottomNavigationView;
 
     private Spinner dropdownSpinner;
 
@@ -67,6 +70,22 @@ public class ContactActivity extends AppCompatActivity implements OnClickListene
 
             }
         });
+        bottomNavigationView = findViewById(R.id.bottom_navigation);
+        bottomNavigationView.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                switch (item.getItemId()) {
+                    case R.id.back:
+                        finish();
+
+
+
+                }
+                return false;
+            }
+
+        });
+
 
 
 

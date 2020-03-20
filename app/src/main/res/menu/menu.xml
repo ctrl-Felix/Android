@@ -13,23 +13,35 @@
     <!-- Die Aktion soll immer als Eintrag im  Overflow Menu angezeigt werden -->
     <item
         android:id="@+id/Call"
-        android:orderInCategory="8"
+        android:orderInCategory="6"
         android:title="Anruf"
         android:icon="@drawable/phone"
-        app:showAsAction="never" />
+        app:showAsAction="never"
+        app:labelVisibilityMode="labeled"
+        />
     <item
         android:id="@+id/action_settings"
-        android:orderInCategory="9"
-        android:title="Mail ins Studio"
+        android:orderInCategory="7"
+        android:title="Mail"
         android:icon="@drawable/mail"
-        app:showAsAction="never" />
-
+        app:showAsAction="never"
+        app:labelVisibilityMode="labeled"/>
     <item
         android:id="@+id/chat"
         android:orderInCategory="9"
         android:title="Chat"
         android:icon="@drawable/chat"
-        app:showAsAction="never" />
+        app:showAsAction="never"
+        app:labelVisibilityMode="labeled"/>
+
+
+    <item
+        android:id="@+id/SongSearch"
+        android:orderInCategory="8"
+        android:title="Liedwunsch"
+        android:icon="@drawable/music"
+        app:showAsAction="never"
+        app:labelVisibilityMode="labeled"/>
 
 
 
